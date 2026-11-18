@@ -14,6 +14,7 @@ import time
 
 ROOT = Path(__file__).resolve().parents[1]
 REF = 'refs/tor-workspace/update'
+FEATURE_ICONS = ('browser', 'terminal', 'share', 'chat', 'options', 'refresh', 'website', 'host')
 
 
 def git(root, *args):
@@ -38,8 +39,20 @@ def parse_releases(raw):
         changes = value.get('changes')
         if not isinstance(changes, list) or not all(isinstance(item, str) for item in changes):
             raise ValueError('Invalid release notes')
-        releases.append(dict(version=value['version'][:40],
-                             changes=[item.strip()[:240] for item in changes[:8] if item.strip()]))
+        entry = dict(version=value['version'][:40], changes=[])
+        icons = value.get('icons', [])
+        if not isinstance(icons, list):
+            icons = []
+        feature_icons = []
+        for index, text in enumerate(changes[:8]):
+            if not text.strip():
+                continue
+            entry['changes'].append(text.strip()[:240])
+            icon = icons[index] if index < len(icons) else ''
+            feature_icons.append(icon if icon in FEATURE_ICONS else '')
+        if any(feature_icons):
+            entry['icons'] = feature_icons
+        releases.append(entry)
     return releases
 
 

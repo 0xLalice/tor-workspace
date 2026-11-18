@@ -24,18 +24,22 @@ TestCase {
   compare(version.text,"v0.1");verify(!version.updateAvailable)
   verify(version.x>findChild(panel,"tor-header-logo").x)
   openFromVersion()
-  compare(entry(0,"installed").text,"v0.1")
+  compare(entry(0,"installed").text,"v0.1  ·  Installed")
   verify(!findChild(panel,"update-continue").visible)
  }
  function test_update_badge_new_entry_and_action(){
   panel.updateStatus=Object.assign({},panel.updateStatus,{available:true,canUpdate:true,latestVersion:"0.2",releases:[
-   {version:"0.2",kind:"available",changes:["New release features."]},
+   {version:"0.2",kind:"available",changes:["Review each new feature in the changelog before installing the available update.","Read the second change in full."]},
    {version:"0.1",kind:"installed",changes:["Current release features."]}
   ]})
   verify(findChild(panel,"tor-version").updateAvailable)
   openFromVersion()
   compare(entry(0,"available").text,"v0.2  ·  Update available")
   tryVerify(function(){return entry(0,"available").mapToItem(panel,0,0).y<entry(1,"installed").mapToItem(panel,0,0).y})
+  var latest=findChild(panel,"changelog-entries").itemAt(0)
+  var second=findChild(latest,"feature-note-1")
+  compare(second.text,"Read the second change in full.")
+  verify(second.mapToItem(latest,0,second.height).y <= latest.height)
   var next=findChild(panel,"update-continue")
   wait(100);mouseClick(next);tryCompare(updates,"count",1)
   panel.updateStatus=Object.assign({},panel.updateStatus,{canUpdate:false,error:"Local changes need attention."})
@@ -54,6 +58,6 @@ TestCase {
   panel.openOptions();tryCompare(findChild(panel,"tor-options"),"opened",true)
   var action=findChild(panel,"update-action");waitForPolish(action);wait(150)
   mouseClick(action);tryCompare(panel,"updateOpened",true)
-  compare(entry(0,"installed").text,"v0.1")
+  compare(entry(0,"installed").text,"v0.1  ·  Installed")
  }
 }

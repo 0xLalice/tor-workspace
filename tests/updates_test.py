@@ -33,7 +33,7 @@ class UpdateTests(unittest.TestCase):
     def release(self):
         (self.remote/'manifest.json').write_text('{"version":"1.1"}')
         (self.remote/'docs/releases.json').write_text(json.dumps([
-            {'version':'1.1','changes':['New numbered workspace.','<b>Plain text only.</b>']},
+            {'version':'1.1','changes':['New numbered workspace.','<b>Plain text only.</b>'], 'icons':['terminal','unsupported']},
             {'version':'1.0','changes':['Old change should not appear.']}]))
         commit(self.remote, 'Release 1.1')
 
@@ -42,7 +42,7 @@ class UpdateTests(unittest.TestCase):
         state=self.check()
         self.assertTrue(state['available']); self.assertTrue(state['canUpdate'])
         self.assertEqual(state['latestVersion'],'1.1')
-        self.assertEqual(len(state['releases'][0]['changes']),2)
+        self.assertEqual(state['releases'][0]['icons'], ['terminal', ''])
         self.assertEqual(git(self.local,'rev-parse','HEAD'),before)
         self.assertEqual(git(self.local,'status','--porcelain'),'')
         self.assertFalse((self.local/'.git/FETCH_HEAD').exists())

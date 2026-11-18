@@ -65,7 +65,7 @@ and keep approval/naming in `ThemeNames` separate. Compare resolved settings and
 roles before/after: palettes outside the requested scope must be identical.
 Verify the live resolved configuration after installation; plugin hot reload can
 retain older QML components. Restart the shell if necessary, preserving Tor state.
-Publish release commits on `main`. Omarchy follows the default branch. Bump the manifest and prepend two short user-facing changes to `docs/releases.json` in the same commit.
+Publish release commits on `main`. Omarchy follows the default branch. Bump the manifest and prepend two short user-facing changes to `docs/releases.json` in the same commit. Add an optional `icons` list in the same order as the changes. Choose glyphs from `FEATURE_ICONS` in `backend/updates.py`. Existing clients can read the plain text independently of the icons.
 Keep action overlays compact: controls, short status, and at most a brief footer.
 
 Use the shared overlay header, body and footer. Titles and short footers are

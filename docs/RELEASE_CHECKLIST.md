@@ -43,21 +43,19 @@
 ## Update acceptance and final public access
 
 Keep a disposable VM checkout at an earlier real commit, preserving its settings
-and Git history. Do not manufacture a release or change version 0.1 merely to
-make an update appear. A later real fix at the same version already exercises
-the documented commit-summary fallback.
+and Git history. Check both a versioned release with feature notes and the commit-summary fallback for a maintenance change.
 
 - [ ] With credential helpers disabled, standard installation from the public
   GitHub URL succeeds. Private authenticated installation does not satisfy this.
-- [ ] **Private candidate:** The installed UI displays bundled history offline, checks without opening
+- [ ] The installed UI displays bundled history offline, checks without opening
   authentication dialogs, and shows the actual pending release notes or commit
   summaries above installed history.
-- [ ] **Private candidate:** Local edits/divergence block Update, including edits made after discovery
+- [ ] Local edits/divergence block Update, including edits made after discovery
   was cached. Source, settings and history remain intact on failure/cancellation.
-- [ ] **Private candidate:** The actual Update action opens the configured agent, uses Omarchy's normal
+- [ ] The actual Update action opens the configured agent, uses Omarchy's normal
   updater, performs any required native/backend repair, reloads the shell and
   verifies the panel. Merely launching the agent is not a pass.
-- [ ] **Private candidate:** After completion, readiness passes, no update remains pending, settings
+- [ ] After completion, readiness passes, no update remains pending, settings
   survive, and repeated checking causes no duplicate configuration or dialogs.
 - [ ] GitHub private vulnerability reporting is enabled and its reporting link
   works; repository history and published artifacts contain no private test data.

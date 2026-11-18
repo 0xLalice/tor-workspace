@@ -1,9 +1,24 @@
 [
   {
+    "version": "0.2",
+    "changes": [
+      "Read each new feature in full in the Changelog.",
+      "See which release is installed and which update is available."
+    ],
+    "icons": [
+      "options",
+      "refresh"
+    ]
+  },
+  {
     "version": "0.1",
     "changes": [
       "Tor circuit globe and exit-country lock.",
       "Tor terminal, apps, files & onion services."
+    ],
+    "icons": [
+      "browser",
+      "share"
     ]
   }
 ]

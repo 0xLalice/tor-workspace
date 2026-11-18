@@ -20,18 +20,59 @@ OverlayPanel {
    Repeater {
     objectName:"changelog-entries"
     model:root.update.releases||[]
-    Column {
-     id:release;required property var modelData;width:body.width;spacing:4
-     Text {
-      objectName:"release-"+release.modelData.kind
-      width:parent.width;wrapMode:Text.WordWrap;textFormat:Text.PlainText
-      text:"v"+release.modelData.version+(release.modelData.kind==="available"?"  ·  Update available":"")
-      color:release.modelData.kind==="available"?root.accent:root.ink;font.family:ThemeDesign.fontFamily;font.pixelSize:ThemeDesign.px(12);font.weight:Font.DemiBold
-     }
-     Text {
-      width:release.width;text:release.modelData.changes.join("\n");textFormat:Text.PlainText
-      wrapMode:Text.WordWrap;maximumLineCount:2;elide:Text.ElideRight
-      color:root.ink;font.family:ThemeDesign.fontFamily;font.pixelSize:ThemeDesign.px(12);lineHeight:1.15
+    Rectangle {
+     id: release
+     required property var modelData
+     readonly property bool pending: modelData.kind === "available"
+     width: body.width
+     implicitHeight: notes.implicitHeight + 20
+     radius: ThemeDesign.radius(8)
+     color: Qt.alpha(root.accent, pending ? 0.10 : 0.035)
+     border.color: Qt.alpha(root.accent, pending ? 0.45 : 0.15)
+     Column {
+      id: notes
+      x: 12
+      y: 10
+      width: parent.width - 24
+      spacing: 7
+      Text {
+       objectName: "release-" + release.modelData.kind
+       width: parent.width
+       wrapMode: Text.WordWrap
+       textFormat: Text.PlainText
+       text: "v" + release.modelData.version + (release.pending ? "  ·  Update available" :
+              release.modelData.kind === "installed" ? "  ·  Installed" : "")
+       color: release.pending ? root.accent : root.ink
+       font.family: ThemeDesign.fontFamily
+       font.pixelSize: ThemeDesign.px(12)
+       font.weight: Font.DemiBold
+      }
+      Repeater {
+       model: release.modelData.changes
+       Row {
+        id: feature
+        required property int index
+        required property string modelData
+        width: notes.width
+        spacing: 8
+        ActionGlyph {
+         width: 16
+         height: 16
+         kind: (release.modelData.icons || [])[feature.index] || "check"
+         ink: root.accent
+        }
+        Text {
+         objectName: "feature-note-" + feature.index
+         width: parent.width - 16 - parent.spacing
+         text: feature.modelData
+         textFormat: Text.PlainText
+         wrapMode: Text.WordWrap
+         color: root.ink
+         font.family: ThemeDesign.fontFamily
+         font.pixelSize: ThemeDesign.px(12)
+        }
+       }
+      }
      }
     }
    }
