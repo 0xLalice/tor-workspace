@@ -1,0 +1,41 @@
+name: Validate plugin
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  source-and-native:
+    runs-on: ubuntu-24.04
+    container: archlinux:base-devel
+    timeout-minutes: 15
+    steps:
+      - name: Install Arch build dependencies
+        run: |
+          pacman -Syu --noconfirm --needed git python python-pip chromium ttf-liberation lua cmake gcc make qt6-base qt6-declarative qt6-shadertools mesa xorg-server-xvfb xorg-xauth iso-codes onionshare tor iproute2 nftables
+          useradd --create-home builder
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Give build user the checkout
+        run: chown -R builder:builder "$GITHUB_WORKSPACE"
+      - name: Validate source package
+        run: runuser -u builder -- python3 tools/check_package.py
+      - name: Test Git installation and updates
+        run: runuser -u builder -- python3 -m unittest discover -s tests -p '*_test.py'
+      - name: Test visitor pages in a real browser
+        run: |
+          runuser -u builder -- python3 -m venv --system-site-packages /home/builder/web-tests
+          runuser -u builder -- /home/builder/web-tests/bin/pip install playwright==1.64.1
+          runuser -u builder -- /home/builder/web-tests/bin/python -B tools/test_web.py --chromium /usr/bin/chromium
+      - name: Compile local Qt modules as build user
+        run: runuser -u builder -- python3 tools/build-native.py
+      - name: Test QML interactions and rendering
+        run: runuser -u builder -- env LIBGL_ALWAYS_SOFTWARE=1 QT_QUICK_BACKEND=rhi QSG_RHI_BACKEND=opengl QT_QUICK_CONTROLS_STYLE=Basic xvfb-run -a python3 tools/test_ui.py --platform xcb
+      - name: Verify builds leave tracked sources unchanged
+        run: |
+          runuser -u builder -- python3 tools/check_package.py
+          test -z "$(runuser -u builder -- git status --porcelain)"

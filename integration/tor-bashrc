@@ -1,0 +1,27 @@
+# Loaded only by the dedicated Tor terminal, inside its network namespace.
+[[ -r ~/.bashrc ]] && source ~/.bashrc
+[[ $- == *i* && -n ${TOR_WORKSPACE:-} ]] || return
+
+_TOR_TERMINAL_HELPER="${BASH_SOURCE[0]%/*}/../backend/terminal_info.py"
+tor-info() { python3 -B "$_TOR_TERMINAL_HELPER"; }
+python3 -B "$_TOR_TERMINAL_HELPER" --startup
+
+# Preserve the user's prompt renderer and its exit-code handling.
+_tor_workspace_prompt() {
+  local previous_status=$?
+  python3 -B "$_TOR_TERMINAL_HELPER" --notice
+  local accent marker
+  accent=$(python3 -B "$_TOR_TERMINAL_HELPER" --accent)
+  marker='\['"$accent"'\]tor\[\e[0m\] '
+  if [[ -n ${_TOR_LAST_MARKER:-} ]]; then
+    PS1=${PS1//"$_TOR_LAST_MARKER"/}
+  fi
+  if [[ $PS1 == *$'\n'* ]]; then
+    PS1=${PS1%$'\n'*}$'\n'"$marker"${PS1##*$'\n'}
+  else
+    PS1=$marker$PS1
+  fi
+  _TOR_LAST_MARKER=$marker
+  return "$previous_status"
+}
+PROMPT_COMMAND+=( '_tor_workspace_prompt' )

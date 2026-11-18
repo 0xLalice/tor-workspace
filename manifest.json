@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "tor.workspace",
+  "name": "Tor Workspace",
+  "version": "0.1",
+  "author": "Tor Workspace contributors",
+  "description": "Tor workspace, live circuits, file sharing, chat and onion hosting",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "ui/shell/BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Tor Workspace",
+    "description": "Tor workspace and connection panel",
+    "category": "Compositor",
+    "allowMultiple": false,
+    "defaultSection": "left"
+  }
+}

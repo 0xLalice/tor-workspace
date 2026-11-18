@@ -1,0 +1,5 @@
+{
+  "qt": "@Qt6_VERSION@",
+  "architecture": "@CMAKE_SYSTEM_PROCESSOR@",
+  "api": 1
+}

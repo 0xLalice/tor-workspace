@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shared file</title><link rel="stylesheet" href="{{ static_url_path }}/workspace.css"></head>
+<body><main>
+{% for info in files %}
+<h1>{{ info.basename }}</h1>
+<p class="size">{{ info.size_human }}</p>
+<a class="download" href="{{ info.link }}" download>Download</a>
+{% endfor %}
+</main></body></html>

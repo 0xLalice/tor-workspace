@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tor Chat</title><link rel="stylesheet" href="{{ static_url_path }}/workspace.css"></head>
+<body>
+<noscript>Enable JavaScript to chat.</noscript>
+<main class="chat-container no-js">
+<header><input id="username" value="{{ username }}" aria-label="Nickname" maxlength="127" autocomplete="off"><ul id="user-list" aria-label="Participants"></ul></header>
+<p id="username-error" role="status"></p>
+<div id="chat" role="log" aria-live="polite"></div>
+<input id="new-message" name="new-message" placeholder="Message" aria-label="Message" autocomplete="off">
+</main>
+<p id="chat-loading" role="status">Loading chat… Reload the page if this message remains.</p>
+<!-- WORKSPACE_CHAT_SCRIPTS -->
+</body></html>

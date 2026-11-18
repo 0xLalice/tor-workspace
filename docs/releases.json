@@ -1,0 +1,9 @@
+[
+  {
+    "version": "0.1",
+    "changes": [
+      "Tor circuit globe and exit-country lock.",
+      "Tor terminal, apps, files & onion services."
+    ]
+  }
+]

@@ -1,0 +1,4 @@
+.pragma library
+function text(path) {
+ return "I just installed Tor Workspace at `"+path+"`. First review its code and `docs/INSTALL.md` without changing the system or starting installation. Missing dependencies are expected. Briefly report factual findings; only if no blocking issues are found, begin with \"✅ No blocking issues found in the installation review.\" Explain that installation needs one administrator password prompt to install missing system packages and the root-owned backend, while builds and downloads run as my desktop user. Do not claim a security certification or guaranteed safety. Ask me to reply OK and stop. Only after my explicit OK, complete setup with the single-terminal installation flow in `docs/INSTALL.md`, then verify readiness and that the panel opens. Keep Tor off and do not run the full development test suites."
+}
