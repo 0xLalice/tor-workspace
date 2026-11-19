@@ -1,32 +1,26 @@
 [
   {
+    "version": "0.2.2",
+    "changes": [
+      "One changelog line per version."
+    ]
+  },
+  {
     "version": "0.2.1",
     "changes": [
-      "Tor shows connection progress while its exit directory loads.",
-      "The exit-country warning appears only when a selected country has no matching exits."
-    ],
-    "icons": ["refresh", "browser"]
+      "Fixed a false exit warning at startup."
+    ]
   },
   {
     "version": "0.2",
     "changes": [
-      "Read each new feature in full in the Changelog.",
-      "See which release is installed and which update is available."
-    ],
-    "icons": [
-      "options",
-      "refresh"
+      "Release notes and update badges."
     ]
   },
   {
     "version": "0.1",
     "changes": [
-      "Tor circuit globe and exit-country lock.",
-      "Tor terminal, apps, files & onion services."
-    ],
-    "icons": [
-      "browser",
-      "share"
+      "Tor globe, exit locks and onion tools."
     ]
   }
 ]

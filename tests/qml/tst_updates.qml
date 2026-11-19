@@ -18,13 +18,14 @@ TestCase {
   tryCompare(panel,"updateOpened",true)
   compare(checks.count,1);compare(updates.count,0)
  }
- function entry(index,kind){return findChild(findChild(panel,"changelog-entries").itemAt(index),"release-"+kind)}
+ function entry(index){return findChild(panel,"changelog-entries").itemAt(index)}
+ function versionOf(index){return findChild(entry(index),"release-version")}
  function test_current_version_opens_history(){
   var version=findChild(panel,"tor-version")
   compare(version.text,"v0.1");verify(!version.updateAvailable)
   verify(version.x>findChild(panel,"tor-header-logo").x)
   openFromVersion()
-  compare(entry(0,"installed").text,"v0.1  ·  Installed")
+  compare(versionOf(0).text,"v0.1 ✓")
   verify(!findChild(panel,"update-continue").visible)
  }
  function test_update_badge_new_entry_and_action(){
@@ -34,12 +35,15 @@ TestCase {
   ]})
   verify(findChild(panel,"tor-version").updateAvailable)
   openFromVersion()
-  compare(entry(0,"available").text,"v0.2  ·  Update available")
-  tryVerify(function(){return entry(0,"available").mapToItem(panel,0,0).y<entry(1,"installed").mapToItem(panel,0,0).y})
-  var latest=findChild(panel,"changelog-entries").itemAt(0)
-  var second=findChild(latest,"feature-note-1")
-  compare(second.text,"Read the second change in full.")
-  verify(second.mapToItem(latest,0,second.height).y <= latest.height)
+  compare(versionOf(0).text,"v0.2 ↑")
+  var latest=entry(0), second=entry(1), note=findChild(latest,"release-summary")
+  compare(note.text,panel.updateStatus.releases[0].changes.join(" "))
+  compare(note.lineCount,1)
+  verify(note.truncated)
+  compare(latest.height,second.height)
+  verify(latest.height<=note.implicitHeight+6)
+  compare(second.y,latest.y+latest.height+2)
+  verify(latest.Accessible.name.indexOf("Read the second change in full.")>=0)
   var next=findChild(panel,"update-continue")
   wait(100);mouseClick(next);tryCompare(updates,"count",1)
   panel.updateStatus=Object.assign({},panel.updateStatus,{canUpdate:false,error:"Local changes need attention."})
@@ -49,7 +53,7 @@ TestCase {
  function test_offline_still_shows_installed_history(){
   panel.updateStatus=Object.assign({},panel.updateStatus,{checked:false,error:"Could not check for updates."})
   openFromVersion()
-  verify(entry(0,"installed").visible)
+  verify(entry(0).visible)
   verify(!findChild(panel,"tor-version").updateAvailable)
   verify(!findChild(panel,"update-continue").visible)
  }
@@ -58,6 +62,6 @@ TestCase {
   panel.openOptions();tryCompare(findChild(panel,"tor-options"),"opened",true)
   var action=findChild(panel,"update-action");waitForPolish(action);wait(150)
   mouseClick(action);tryCompare(panel,"updateOpened",true)
-  compare(entry(0,"installed").text,"v0.1  ·  Installed")
+  compare(versionOf(0).text,"v0.1 ✓")
  }
 }

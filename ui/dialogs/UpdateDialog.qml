@@ -17,77 +17,63 @@ OverlayPanel {
   OverlayBody {
    id:body;width:scroll.availableWidth
    OverlayHeader {title:"Changelog";ink:root.ink;accent:root.accent;onClosed:root.close()}
-   Repeater {
-    objectName:"changelog-entries"
-    model:root.update.releases||[]
-    Rectangle {
-     id: release
-     required property var modelData
-     readonly property bool pending: modelData.kind === "available"
-     width: body.width
-     implicitHeight: notes.implicitHeight + 20
-     radius: ThemeDesign.radius(8)
-     color: Qt.alpha(root.accent, pending ? 0.10 : 0.035)
-     border.color: Qt.alpha(root.accent, pending ? 0.45 : 0.15)
-     Column {
-      id: notes
-      x: 12
-      y: 10
-      width: parent.width - 24
-      spacing: 7
+   Column {
+    width:parent.width
+    spacing:2
+    Repeater {
+     objectName:"changelog-entries"
+     model:root.update.releases||[]
+     Item {
+      id:release
+      required property var modelData
+      readonly property bool pending:modelData.kind==="available"
+      readonly property bool installed:modelData.kind==="installed"
+      readonly property string status:pending?"Update available":installed?"Installed":""
+      readonly property string summary:(modelData.changes||[]).join(" ")
+      width:parent.width
+      implicitHeight:Math.max(version.implicitHeight,note.implicitHeight)+4
+      Accessible.role:Accessible.StaticText
+      Accessible.name:["v"+modelData.version,status,summary].filter(Boolean).join(". ")
       Text {
-       objectName: "release-" + release.modelData.kind
-       width: parent.width
-       wrapMode: Text.WordWrap
-       textFormat: Text.PlainText
-       text: "v" + release.modelData.version + (release.pending ? "  ·  Update available" :
-              release.modelData.kind === "installed" ? "  ·  Installed" : "")
-       color: release.pending ? root.accent : root.ink
-       font.family: ThemeDesign.fontFamily
-       font.pixelSize: ThemeDesign.px(12)
-       font.weight: Font.DemiBold
+       id:version;objectName:"release-version"
+       anchors.verticalCenter:parent.verticalCenter
+       text:"v"+release.modelData.version+(release.pending?" ↑":release.installed?" ✓":"")
+       width:Math.min(Math.max(implicitWidth,ThemeDesign.px(62)),release.width*0.4)
+       textFormat:Text.PlainText;elide:Text.ElideRight
+       color:release.pending?root.accent:root.ink
+       font.family:ThemeDesign.fontFamily;font.pixelSize:ThemeDesign.px(12);font.weight:Font.DemiBold
       }
-      Repeater {
-       model: release.modelData.changes
-       Row {
-        id: feature
-        required property int index
-        required property string modelData
-        width: notes.width
-        spacing: 8
-        ActionGlyph {
-         width: 16
-         height: 16
-         kind: (release.modelData.icons || [])[feature.index] || "check"
-         ink: root.accent
-        }
-        Text {
-         objectName: "feature-note-" + feature.index
-         width: parent.width - 16 - parent.spacing
-         text: feature.modelData
-         textFormat: Text.PlainText
-         wrapMode: Text.WordWrap
-         color: root.ink
-         font.family: ThemeDesign.fontFamily
-         font.pixelSize: ThemeDesign.px(12)
-        }
-       }
+      Text {
+       id:note;objectName:"release-summary"
+       anchors.left:version.right;anchors.leftMargin:6;anchors.right:parent.right
+       anchors.verticalCenter:parent.verticalCenter
+       text:release.summary;textFormat:Text.PlainText;elide:Text.ElideRight
+       color:root.ink;font.family:ThemeDesign.fontFamily;font.pixelSize:ThemeDesign.px(12)
+      }
+      HoverHandler {id:hover}
+      TorToolTip {
+       visible:hover.hovered&&(release.status!==""||note.truncated||version.truncated)
+       text:"v"+release.modelData.version+(release.status?" · "+release.status:"")
+       detail:note.truncated?release.summary:""
       }
      }
     }
    }
-   ActionCardRow {
-    ActionCard {ink:root.ink;accent:root.accent;kind:"terminal"
-     id:launch;objectName:"update-continue";enabled:root.update.canUpdate===true&&!root.busy
-     visible:root.update.available===true;text:"Update";onClicked:root.updateRequested()
+   Row {
+    anchors.horizontalCenter:parent.horizontalCenter
+    spacing:16
+    OverlayAction {
+     objectName:"update-continue";visible:root.update.available===true
+     enabled:root.update.canUpdate===true&&!root.busy;text:"Update in agent"
+     onClicked:root.updateRequested()
     }
-    ActionCard {ink:root.ink;accent:root.accent;kind:"refresh"
-     id:recheck;objectName:"update-recheck";enabled:!root.busy
-     text:root.busy?"Checking…":"Check again";onClicked:root.checkRequested()
+    OverlayAction {
+     objectName:"update-recheck";enabled:!root.busy;text:root.busy?"Checking…":"Check again"
+     onClicked:root.checkRequested()
     }
    }
-   OverlayFooter {ink:root.ink
-    text:root.update.error||(root.update.available?"Your agent reviews and applies the update.":root.busy?"Checking for updates…":root.update.checked?"You're up to date.":root.update.managed===false?"Updates require a Git installation.":"Updates haven't been checked yet.")
+   OverlayFooter {ink:root.ink;visible:text!==""
+    text:root.update.error||(root.update.available||root.busy?"":root.update.checked?"You're up to date.":root.update.managed===false?"Updates require a Git installation.":"Updates haven't been checked yet.")
    }
    Text {width:parent.width;visible:text!=="";text:root.feedback;textFormat:Text.PlainText;wrapMode:Text.WordWrap;color:root.ink;opacity:ThemeDesign.textOpacity(.65);font.family:ThemeDesign.fontFamily;font.pixelSize:ThemeDesign.px(11)}
   }

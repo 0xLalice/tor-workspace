@@ -51,7 +51,7 @@ instructions synchronized with code. Generated historical data must preserve its
 source provenance and attribution. Keep each source module under 512 KiB so the
 marketplace can inspect it completely.
 
-Keep each changelog entry to its version and at most two short lines about core
+Keep each changelog entry to its version and one short line about core
 user-facing features. Avoid implementation details and feature inventories.
 
 For every UI or theme change, use the actual plugin in the QML suites and native
@@ -65,7 +65,7 @@ and keep approval/naming in `ThemeNames` separate. Compare resolved settings and
 roles before/after: palettes outside the requested scope must be identical.
 Verify the live resolved configuration after installation; plugin hot reload can
 retain older QML components. Restart the shell if necessary, preserving Tor state.
-Publish release commits on `main`. Omarchy follows the default branch. Bump the manifest and prepend two short user-facing changes to `docs/releases.json` in the same commit. Add an optional `icons` list in the same order as the changes. Choose glyphs from `FEATURE_ICONS` in `backend/updates.py`. Existing clients can read the plain text independently of the icons.
+Publish release commits on `main`. Omarchy follows the default branch. Bump the manifest and prepend one short user-facing summary to `docs/releases.json` in the same commit. Add an optional `icons` list in the same order as the changes. Choose glyphs from `FEATURE_ICONS` in `backend/updates.py`. Existing clients can read the plain text independently of the icons.
 Keep action overlays compact: controls, short status, and at most a brief footer.
 
 Use the shared overlay header, body and footer. Titles and short footers are
