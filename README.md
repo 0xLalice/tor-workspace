@@ -118,8 +118,9 @@ an update is available, the version beside the logo gains an accent badge and
 an upward arrow. Click the version to open the changelog at any time: installed
 release notes are available offline, and new releases appear above them when
 GitHub has an update. **Options → Update available** opens the same overlay.
-**Update in agent** opens your local agent to review the changes, run Omarchy’s
-updater, and complete any required build or setup steps. Background checks disable
+**Update** checks the selected release against your machine. Ordinary releases
+apply directly. When system packages or the root-owned backend need work, the
+same button opens your agent to review and complete the privileged setup. Background checks disable
 credential helpers and password prompts. Private HTTPS repositories that require
 your credential helper must be updated manually with the command below, which
 can use your normal Git authentication. Offline checks never prevent using the plugin.

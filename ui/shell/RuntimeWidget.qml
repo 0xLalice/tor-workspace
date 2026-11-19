@@ -94,13 +94,13 @@ Panel {
   AgentHandoff {
     id:agentHandoff
     pluginPath:root.pluginPath
-    onDeparting:{dashboard.closePresentation();root.close()}
+    onDeparting:{if(agentHandoff.purpose==="installation"){dashboard.closePresentation();root.close()}}
     onFailed:purpose=>root.agentFailed(purpose)
   }
   function agentFailed(purpose) {
     root.open()
     if(purpose==="update") {
-      updateFeedback="Could not complete update handoff. Check the terminal, then check for updates again."
+      updateFeedback="Update incomplete. Check for updates and try again."
       Qt.callLater(dashboard.openUpdate)
     } else {
       installationFeedback="Could not open setup. Check your default agent or use Manual instructions."
@@ -129,10 +129,10 @@ Panel {
     onExited:code=>{if(code!==0)root.updateStatus=Object.assign({},root.updateStatus,{error:"Could not check for updates."})}
   }
   Timer {interval:3600000;repeat:true;triggeredOnStart:true;running:root.setupStatus.ready;onTriggered:root.checkUpdates(false)}
-  function updateWithAgent() {
+  function applyUpdate() {
     if(agentHandoff.busy || updateStatus.canUpdate!==true)return
-    updateFeedback="Continue in your agent terminal."
-    agentHandoff.launch(["omarchy","launch","tui","python3","-B",
+    updateFeedback="Updating…"
+    agentHandoff.launch(["python3","-B",
       pluginPath+"install/update-session.py",updateStatus.revision,
       UpdatePrompt.text(pluginPath,updateStatus.revision)],"update")
   }
@@ -477,7 +477,7 @@ Panel {
         updateStatus:root.updateStatus
         updateBusy:updateCheck.running||agentHandoff.busy
         updateFeedback:root.updateFeedback
-        onUpdateRequested:root.updateWithAgent()
+        onUpdateRequested:root.applyUpdate()
         onUpdateCheckRequested:root.checkUpdates(true)
         shortcutStatus:root.shortcutStatus;shortcutBusy:shortcutWorker.running
         onShortcutsRequested:root.shortcuts("status")

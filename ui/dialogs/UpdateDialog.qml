@@ -64,7 +64,7 @@ OverlayPanel {
     spacing:16
     OverlayAction {
      objectName:"update-continue";visible:root.update.available===true
-     enabled:root.update.canUpdate===true&&!root.busy;text:"Update in agent"
+     enabled:root.update.canUpdate===true&&!root.busy;text:"Update"
      onClicked:root.updateRequested()
     }
     OverlayAction {

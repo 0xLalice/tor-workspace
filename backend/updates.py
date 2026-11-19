@@ -56,6 +56,16 @@ def parse_releases(raw):
     return releases
 
 
+def pending_update(root):
+    try:
+        marker = json.loads((root/'.git/tor-workspace-update.json').read_text())
+        if marker['revision'] == git(root, 'rev-parse', 'HEAD') and isinstance(marker['previous'], str):
+            return marker
+    except (OSError, ValueError, TypeError, KeyError, subprocess.SubprocessError):
+        pass
+    return None
+
+
 def local_status(root=ROOT):
     result = dict(available=False, canUpdate=False, currentVersion='', latestVersion='',
                   releases=[], error='', managed=(root/'.git').exists(), checked=False)
@@ -89,6 +99,13 @@ def check(root=ROOT, cache_dir=None, force=False):
     result = local_status(root)
     try:
         if result['error'] or not result['managed']: return result
+        pending = pending_update(root)
+        if pending:
+            clean = not git(root, 'status', '--porcelain')
+            result.update(available=True, canUpdate=clean, checked=True, revision=pending['revision'],
+                          latestVersion=result['currentVersion'],
+                          error='Finish the interrupted update.' if clean else 'Local changes need attention before updating.')
+            return result
         head = git(root, 'rev-parse', 'HEAD')
         origin = git(root, 'remote', 'get-url', 'origin')
         key = hashlib.sha256(('2'+str(root.resolve())+origin+head).encode()).hexdigest()

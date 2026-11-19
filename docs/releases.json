@@ -1,5 +1,11 @@
 [
   {
+    "version": "0.2.3",
+    "changes": [
+      "One Update button for every release."
+    ]
+  },
+  {
     "version": "0.2.2",
     "changes": [
       "One changelog line per version."

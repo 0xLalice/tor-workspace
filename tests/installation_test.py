@@ -69,7 +69,7 @@ class BootstrapTests(unittest.TestCase):
         self.run_handoff("installation")
 
     @unittest.skipUnless(os.environ.get("WAYLAND_DISPLAY") and shutil.which("quickshell"), "Requires Omarchy Wayland")
-    def test_update_uses_independent_terminal_and_plugin_directory(self):
+    def test_update_starts_dispatcher_in_independent_service(self):
         self.run_handoff("update")
 
     def run_handoff(self, purpose):
@@ -87,6 +87,8 @@ class BootstrapTests(unittest.TestCase):
             mock.write_text('#!/usr/bin/python3\nimport json,sys,os\nfrom pathlib import Path\nPath('+repr(str(capture))+').write_text(json.dumps(dict(args=sys.argv[1:],cwd=os.getcwd())))\n');mock.chmod(0o755)
             service=binaries/'systemd-run'
             service.write_text('#!/bin/bash\nwhile [[ $1 == --* ]]; do shift; done\nexec "$@"\n');service.chmod(0o755)
+            if purpose == 'update':
+                service.write_text('#!/usr/bin/python3\nimport json,os,sys\nfrom pathlib import Path\nPath('+repr(str(capture))+').write_text(json.dumps(dict(args=sys.argv[1:],cwd=os.getcwd())))\n')
             (harness/'shell.qml').write_text('''import QtQuick
 import Quickshell
 ShellRoot {
@@ -124,20 +126,19 @@ ShellRoot {
  }}
  Timer {id:finish;interval:800;onTriggered:Qt.quit()}
 }
-''' % (json.dumps((source/'ui/shell/BarWidget.qml').as_uri()), 'runtime.updateStatus={canUpdate:true,revision:"reviewed-revision"};runtime.updateWithAgent()' if purpose=="update" else "widget.item.installWithAgent()"))
+''' % (json.dumps((source/'ui/shell/BarWidget.qml').as_uri()), 'runtime.updateStatus={canUpdate:true,revision:"reviewed-revision"};runtime.applyUpdate()' if purpose=="update" else "widget.item.installWithAgent()"))
             result=subprocess.run(['quickshell','--path',str(harness)],env=dict(os.environ,QT_QPA_PLATFORM='wayland',XDG_CONFIG_HOME=str(config),PATH=str(binaries)+':'+os.environ['PATH']),capture_output=True,text=True,timeout=15)
             log=result.stdout+result.stderr
             self.assertEqual(result.returncode,0,log);self.assertIn('BOOTSTRAP_READY',log);self.assertNotIn('BAR_LAUNCHER_FAILED',log);self.assertNotIn('BAR_GEOMETRY_FAILED',log)
             for error in ('unavailable','No such file','ReferenceError','TypeError'):self.assertNotIn(error,log)
-            captured=json.loads(capture.read_text());args=captured['args'];self.assertEqual(args[:2],['launch','tui'])
+            captured=json.loads(capture.read_text());args=captured['args']
             self.assertEqual(Path(captured['cwd']),source)
             if purpose == "update":
-                self.assertEqual(args[:4], ['launch','tui','python3','-B'])
-                self.assertEqual(args[4], str(source/'install/update-session.py'))
-                self.assertEqual(args[5], 'reviewed-revision')
-                self.assertIn('omarchy plugin update tor.workspace --yes', args[6])
-                self.assertIn('reviewed-revision', args[6])
+                self.assertEqual(args[-5:-1], ['python3','-B',str(source/'install/update-session.py'),'reviewed-revision'])
+                self.assertIn('reviewed-revision', args[-1])
+                self.assertNotIn('tui', args)
                 return
+            self.assertEqual(args[:2],['launch','tui'])
             self.assertEqual(args[3],str(source/'install/agent-session.sh'))
             self.assertIn('docs/INSTALL.md',args[4]);self.assertIn(str(source),args[4])
             expected=next(line[2:] for line in (ROOT/'README.md').read_text().splitlines() if line.startswith('> I just installed')).replace('<path>',str(source)+'/')

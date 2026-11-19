@@ -56,11 +56,7 @@ terminal prompts and desktop askpass; SSH uses batch mode. Private HTTPS remotes
 requiring a credential helper can be updated manually using normal Git credentials.
 Installed history is emitted before the network check; available entries are shown above it. The header reads
 the installed version from the manifest rather than maintaining a separate label. Local changes or divergent
-history block the update action. Actual updates use the standard Omarchy command
-in the independent agent terminal, followed by readiness checks and shell reload.
-`install/update-session.py` repeats discovery immediately before agent handoff;
-new edits, divergence, failed discovery, or a changed remote revision block it.
-Cancellation leaves the checkout intact. Public installations use anonymous HTTPS.
+history block the update action. The Update button starts an independent user service. It validates the selected revision in a temporary checkout and checks readiness against the installed system and native builds. Privileged setup opens the agent for review. User-only updates fast-forward to the selected commit, finish any user setup and reload the shell. A Git-local marker allows interrupted setup to resume. Public installations use anonymous HTTPS.
 
 ## Installation and execution
 

@@ -37,7 +37,7 @@
 | Speed comparison | speed overlay → `speed_compare.py` | Explicit direct and Tor measurements remain separate; cancelled process stops; failures aren't reported as speed; UI discloses the direct test. |
 | Themes/renderers | palette watcher → palette gate → shared appearance → native renderers | All 22 palettes, both built-ins, custom publication; smooth transitions after Omarchy; no resize, flash, circuit redraw/request or camera reset; hidden/reduced-motion stops unnecessary work. |
 | Options/shortcuts | Options → runtime → `shortcuts.py` | Both shortcut halves checked for conflicts; changes survive reload; clearing removes only plugin-owned bindings; resume option appears only in Options. |
-| Updates/repair | update dialog → agent → normal Omarchy updater → readiness | Offline use works; dirty/divergent Git blocks update; user settings/history survive; required native/backend repair is explicit; repeated setup creates no duplicate widget/include. |
+| Updates/repair | update dialog → direct update or privileged agent review → readiness | Offline use works; dirty/divergent Git blocks update; user settings/history survive; required native/backend repair is explicit; repeated setup creates no duplicate widget/include. |
 | Removal/reinstall | `system/uninstall.py` → Omarchy removal | Refuse unsafe namespace cleanup with remaining processes; remove owned units/network resources only; retain files/profiles/preferences; reinstall works. |
 
 ## Update acceptance and final public access

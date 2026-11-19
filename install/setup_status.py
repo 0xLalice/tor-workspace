@@ -5,7 +5,9 @@ import json
 import os
 from pathlib import Path
 import platform
+import pwd
 import re
+import runpy
 import shutil
 import subprocess
 
@@ -94,12 +96,13 @@ def status(root=ROOT, system=Path('/'), home=None, uid=None):
         current = all(hashlib.sha256((root/src).read_bytes()).digest()==hashlib.sha256((installed_dir/dst).read_bytes()).digest() for src,dst in sources.items())
     except OSError: current = False
     try:
-        unit = (system/'etc/systemd/system'/f'omarchy-tor-session-{uid}.service').read_text()
-        resolver_current = ('TemporaryFileSystem=/run/systemd/resolve:ro' in unit and all(
-            f'BindReadOnlyPaths=/etc/netns/omarchy-tor-{uid}/resolv.conf:{target}' in unit
-            for target in ('/etc/resolv.conf', '/run/systemd/resolve/stub-resolv.conf', '/run/systemd/resolve/resolv.conf')))
-    except OSError: resolver_current = False
-    current = current and resolver_current
+        account = pwd.getpwuid(uid)
+        unit_text = runpy.run_path(root/'system/install.py')['unit_text']
+        units = unit_text(uid, account.pw_gid, account.pw_dir)
+        current = current and all((system/'etc/systemd/system'/name).read_text() == text
+                                  for name, text in units.items())
+    except (OSError, KeyError):
+        current = False
     if not compatible or not current: issues.append('Install or update the system backend.')
     enrolled = (system/'etc/omarchy-tor/users'/str(uid)).is_file()
     if not enrolled: issues.append('Enroll this desktop user in the Tor launcher.')
