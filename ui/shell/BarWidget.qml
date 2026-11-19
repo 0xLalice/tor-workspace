@@ -20,7 +20,7 @@ Item {
  function toggle() { if(screen.item)screen.item.toggle() }
  function closeForPopoutSwitch() { if(screen.item)screen.item.closeForPopoutSwitch() }
  function checkInstallation() { if(!check.running)check.running=true }
- function installWithAgent() { if(screen.item)screen.item.installWithAgent() }
+ function startInstallation() { if(screen.item)screen.item.startInstallation() }
  function showScreen() {
   var name="RuntimeWidget.qml"
   var next=Qt.resolvedUrl(name)

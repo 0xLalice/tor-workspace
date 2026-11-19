@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply the selected release as the desktop user, or open its privileged review."""
+"""Apply a user update or open the shared terminal for privileged setup."""
 import contextlib
 import fcntl
 import json
@@ -74,7 +74,7 @@ def finish(root, previous, state):
         raise
 
 
-def run(root, revision, prompt):
+def apply(root, revision, confirmed):
     if os.geteuid() == 0:
         raise RuntimeError('Update as the desktop user.')
     # Omarchy installs normal Git clones. Keep retry state outside the source inventory.
@@ -100,32 +100,39 @@ def run(root, revision, prompt):
                 else:
                     target_state = readiness(stage)
                 admin = needs_admin(target_state)
-                if not admin:
+                if confirmed or not admin:
                     subprocess.run([PYTHON, '-B', stage/'tools/check_package.py'], cwd=stage, check=True)
             if head != git(root, 'rev-parse', 'HEAD') or git(root, 'status', '--porcelain'):
                 raise RuntimeError('The checkout changed. Check for updates again.')
-        if admin:
-            # The existing reviewed installation path owns any authentication.
-            subprocess.run(['omarchy', 'launch', 'tui', 'bash', root/'install/agent-session.sh',
-                            prompt, 'updateFailed'], cwd=root, check=True)
-            # Some terminal launchers return before the terminal finishes.
-            # Keep a pending direct-update marker until readiness is verified.
-            if pending and git(root, 'rev-parse', 'HEAD') == revision and readiness(root)['ready']:
-                finish(root, previous, readiness(root))
-            return
+        if admin and not confirmed:
+            return False
         if head != revision:
             temporary = marker.with_suffix('.tmp')
             temporary.write_text(json.dumps(dict(revision=revision, previous=previous)))
             temporary.replace(marker)
             git(root, 'merge', '--ff-only', '--no-autostash', '--no-overwrite-ignore', revision)
+        if admin:
+            subprocess.run([PYTHON, '-B', root/'install/setup-session.py'], cwd=root, check=True)
         finish(root, previous, readiness(root))
+        return True
+
+
+def run(root, revision, confirmed=False):
+    # Release the checkout lock before opening the terminal. A confirmation
+    # re-enters apply() and checks the revision and local edits again.
+    if not apply(root, revision, confirmed):
+        subprocess.run(['omarchy', 'launch', 'tui', 'bash', root/'install/interactive-setup.sh',
+                        'update', revision], cwd=root, check=True)
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        raise SystemExit('Expected the selected revision and its review prompt.')
+    import argparse
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--confirmed', action='store_true')
+    parser.add_argument('revision')
+    args = parser.parse_args()
     try:
-        run(ROOT, *sys.argv[1:])
+        run(ROOT, args.revision, args.confirmed)
     except (OSError, ValueError, KeyError, RuntimeError, subprocess.SubprocessError) as error:
         print('Update incomplete:', error, file=sys.stderr)
         subprocess.run(['notify-send', 'Tor Workspace update', str(error)], check=False)

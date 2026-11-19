@@ -52,7 +52,7 @@ class UpdateSessionTests(unittest.TestCase):
         self.enterContext(patch.object(worker.os, 'geteuid', return_value=1000))
 
     def apply(self):
-        worker.run(self.root, self.revision, 'Review this update')
+        worker.run(self.root, self.revision)
 
     def test_user_update_selects_exact_commit_and_reloads(self):
         self.apply()
@@ -61,12 +61,27 @@ class UpdateSessionTests(unittest.TestCase):
         self.assertNotIn('launch tui', self.log.read_text())
         self.assertIsNone(worker.pending_update(self.root))
 
-    def test_backend_update_opens_agent_before_changing_head(self):
+    def test_backend_update_opens_setup_before_changing_head(self):
         self.state['backendCurrent'] = False
         self.apply()
         self.assertEqual(git(self.root, 'rev-parse', 'HEAD').strip(), self.before)
-        self.assertIn('launch tui bash', self.log.read_text())
+        self.assertIn('interactive-setup.sh update '+self.revision, self.log.read_text())
         self.assertNotIn('restart shell', self.log.read_text())
+
+    def test_confirmed_backend_update_applies_and_finishes_scripted_setup(self):
+        self.state['backendCurrent'] = False
+        ready = dict(self.state, backendCurrent=True)
+        # The fixture stands in for the system installer; run it in the real updated checkout.
+        (self.origin/'install/setup-session.py').write_text(
+            "from pathlib import Path\nPath('.git/system-setup-ran').touch()\n")
+        commit(self.origin, 'Backend setup')
+        self.revision = git(self.origin, 'rev-parse', 'HEAD').strip()
+        with patch.object(worker, 'readiness', return_value=ready):
+            worker.run(self.root, self.revision, confirmed=True)
+        self.assertTrue((self.root/'.git/system-setup-ran').is_file())
+        self.assertEqual(git(self.root, 'rev-parse', 'HEAD').strip(), self.revision)
+        self.assertNotIn('launch tui', self.log.read_text())
+        self.assertIsNone(worker.pending_update(self.root))
 
     def test_only_missing_required_build_tools_need_admin(self):
         self.assertFalse(worker.needs_admin(self.state))

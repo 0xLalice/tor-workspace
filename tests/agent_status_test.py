@@ -1,4 +1,4 @@
-"""Probe the launch prerequisite without opening terminals or requiring Python in PATH."""
+"""Account-independent setup and optional agent review in a disposable directory."""
 from pathlib import Path
 import json
 import os
@@ -12,35 +12,6 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class AgentStatusTests(unittest.TestCase):
-    def test_agent_failure_reopens_installation(self):
-        with tempfile.TemporaryDirectory() as folder:
-            root=Path(folder);capture=root/'calls'
-            for name,body in [('omarchy','if [[ $1 == default ]]; then printf claude; exit 0; fi\nprintf "%s\\n" "$*" >> "$CAPTURE"\nexit "$RESULT"'),('omarchy-shell','printf "%s\\n" "$*" >> "$CAPTURE"')]:
-                script=root/name;script.write_text('#!/bin/bash\n'+body+'\n');script.chmod(0o755)
-            for result in (0,7,130):
-                with self.subTest(result=result):
-                    capture.unlink(missing_ok=True)
-                    proc=subprocess.run(['/bin/bash',str(ROOT/'install/agent-session.sh'),'test prompt'],env=dict(os.environ,PATH=str(root),CAPTURE=str(capture),RESULT=str(result)))
-                    self.assertEqual(proc.returncode,result)
-                    calls=capture.read_text().splitlines()
-                    self.assertEqual(calls[0],'agent prompt --inline test prompt')
-                    self.assertEqual(calls[1:],['tor.workspace installationFailed'] if result else [])
-
-    def test_update_failure_uses_update_dialog(self):
-        with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder)
-            capture = root/'calls'
-            for name, body in [('omarchy', 'if [[ $1 == default ]]; then printf claude; else exit 7; fi'),
-                               ('omarchy-shell', 'printf "%s\\n" "$*" >> "$CAPTURE"')]:
-                script = root/name
-                script.write_text('#!/bin/bash\n'+body+'\n')
-                script.chmod(0o755)
-            result = subprocess.run(['/bin/bash', str(ROOT/'install/agent-session.sh'),
-                                     'update prompt', 'updateFailed'],
-                                    env=dict(os.environ, PATH=str(root), CAPTURE=str(capture)))
-            self.assertEqual(result.returncode, 7)
-            self.assertEqual(capture.read_text().strip(), 'tor.workspace updateFailed')
-
     def test_codex_trust_is_exact_path_and_invocation_only(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);project=root/'quoted "project" \\ path';install=project/'install';install.mkdir(parents=True)
@@ -52,24 +23,41 @@ class AgentStatusTests(unittest.TestCase):
             subprocess.run(['/bin/bash',str(install/'agent-session.sh'),'review only'],check=True,
                 env=dict(os.environ,PATH=str(binary),CAPTURE=str(capture)))
             args=json.loads(capture.read_text())
-            self.assertEqual(args[0],'--approve-for-me')
-            key,value=args[2].split('=',1)
+            self.assertEqual(args[:2],['--sandbox','read-only'])
+            key,value=args[3].split('=',1)
             self.assertEqual(key,'projects')  # Codex splits dotted CLI keys literally.
             config={key:tomllib.loads('value='+value)['value']}
             self.assertEqual(config,{'projects':{str(project):{'trust_level':'trusted'}}})
-            self.assertEqual(args[3:],['--','review only'])
+            self.assertEqual(args[4:],['--','review only'])
             self.assertFalse(any('bypass' in a for a in args))
-    def test_unset_missing_and_executable_agent(self):
-        with tempfile.TemporaryDirectory() as folder:
-            root = Path(folder)
-            shell = root/'omarchy'
-            shell.write_text('#!/bin/bash\nprintf "%s\\n" "$TEST_AGENT"\n')
-            shell.chmod(0o755)
-            for agent, executable, expected in (('',False,False), ('codex',False,False), ('codex',True,True), ('bogus',True,False)):
-                with self.subTest(agent=agent, executable=executable):
-                    binary=root/agent if agent else root/'unused'
-                    if executable:
-                        binary.write_text('#!/bin/bash\nexit 0\n');binary.chmod(0o755)
-                    result=subprocess.check_output(['/bin/bash',str(ROOT/'install/agent-status.sh')],env=dict(os.environ,PATH=str(root),TEST_AGENT=agent),text=True)
-                    self.assertEqual(json.loads(result)['available'],expected)
-                    if executable: binary.unlink()
+
+    def test_scripted_install_update_cancel_and_failed_review(self):
+        revision = 'a'*40
+        for agent, action, choices, expected in [
+            ('', ['install'], 'i\n', ['setup','restart shell']),
+            ('codex', ['update', revision], 'i\n', ['--confirmed '+revision]),
+            ('codex', ['update', revision], 'r\ni\n', ['review','--confirmed '+revision]),
+            ('codex', ['install'], 'r\nq\n', ['review']),
+            ('', ['install'], 'q\n', []),
+        ]:
+            with self.subTest(agent=agent, action=action, choices=choices), tempfile.TemporaryDirectory() as folder:
+                root = Path(folder)
+                install = root/'install'
+                install.mkdir()
+                for name in ('agent-session.sh', 'interactive-setup.sh'):
+                    shutil.copyfile(ROOT/'install'/name, install/name)
+                for name, output in [('setup-session.py', "'setup'"), ('update-session.py', "' '.join(sys.argv[1:])")]:
+                    (install/name).write_text("import os,sys\nwith open(os.environ['CAPTURE'],'a') as f: print("+output+", file=f)\n")
+                def shell(name, body):
+                    path=root/name
+                    path.write_text('#!/bin/bash\n'+body+'\n')
+                    path.chmod(0o755)
+                shell('omarchy','if [[ $1 == default ]]; then echo "$TEST_AGENT"; else echo "$*" >> "$CAPTURE"; fi')
+                shell('codex','echo review >> "$CAPTURE"; exit 1')
+                calls=root/'calls'
+                calls.touch()
+                result=subprocess.run(['bash',install/'interactive-setup.sh',*action],input=choices,
+                    env=dict(os.environ,PATH=str(root)+':'+os.environ['PATH'],CAPTURE=str(calls),TEST_AGENT=agent),
+                    stdout=subprocess.PIPE,text=True)
+                self.assertEqual(result.returncode,0)
+                self.assertEqual(calls.read_text().splitlines(),expected)

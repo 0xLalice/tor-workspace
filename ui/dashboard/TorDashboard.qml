@@ -23,19 +23,14 @@ Item {
  property bool installationReady:true
  property bool installationBusy:false
  property string installationFeedback:""
- property bool installationAgentAvailable:true
  readonly property bool installationOpened:installationDialog.opened
  signal installationRequested()
- signal installationCheckRequested()
- signal installationConfigureRequested()
  signal installationManualRequested()
- function openInstallation(){if(!installationReady){root.installationCheckRequested();openOverlay(installationDialog)}}
+ function openInstallation(){if(!installationReady)openOverlay(installationDialog)}
  InstallationDialog {
   id:installationDialog;reducedMotion:root.reducedMotion;ink:root.ink;accent:root.accent;surface:root.background
   busy:root.installationBusy;feedback:root.installationFeedback
-  agentAvailable:root.installationAgentAvailable
   onInstallRequested:root.installationRequested()
-  onConfigureRequested:root.installationConfigureRequested()
   onManualRequested:root.installationManualRequested()
  }
  onInstallationReadyChanged:if(installationReady)installationDialog.close()

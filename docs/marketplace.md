@@ -25,7 +25,7 @@ Track execution and evidence in the [release checklist](RELEASE_CHECKLIST.md).
 An unchecked acceptance item blocks release even when CI is green.
 
 - Complete a clean Omarchy VM test: install from Git, missing-dependency panel,
-  agent handoff, review, package installation, user-native compilation, system
+  setup terminal, optional review, package installation, user-native compilation, system
   setup, signed browser download, readiness, Tor startup and isolation checks.
 - Exercise a Git update after setup, source/Qt-change rebuild, failed setup and
   repair, plugin/backend removal, and reinstall. Preserve the clean VM baseline.

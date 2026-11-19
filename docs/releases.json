@@ -1,5 +1,11 @@
 [
   {
+    "version": "0.2.4",
+    "changes": [
+      "Install and update without an AI account."
+    ]
+  },
+  {
     "version": "0.2.3",
     "changes": [
       "One Update button for every release."

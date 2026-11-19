@@ -126,7 +126,7 @@ ShellRoot {
  }}
  Timer {id:finish;interval:800;onTriggered:Qt.quit()}
 }
-''' % (json.dumps((source/'ui/shell/BarWidget.qml').as_uri()), 'runtime.updateStatus={canUpdate:true,revision:"reviewed-revision"};runtime.applyUpdate()' if purpose=="update" else "widget.item.installWithAgent()"))
+''' % (json.dumps((source/'ui/shell/BarWidget.qml').as_uri()), 'runtime.updateStatus={canUpdate:true,revision:"reviewed-revision"};runtime.applyUpdate()' if purpose=="update" else "widget.item.startInstallation()"))
             result=subprocess.run(['quickshell','--path',str(harness)],env=dict(os.environ,QT_QPA_PLATFORM='wayland',XDG_CONFIG_HOME=str(config),PATH=str(binaries)+':'+os.environ['PATH']),capture_output=True,text=True,timeout=15)
             log=result.stdout+result.stderr
             self.assertEqual(result.returncode,0,log);self.assertIn('BOOTSTRAP_READY',log);self.assertNotIn('BAR_LAUNCHER_FAILED',log);self.assertNotIn('BAR_GEOMETRY_FAILED',log)
@@ -134,12 +134,8 @@ ShellRoot {
             captured=json.loads(capture.read_text());args=captured['args']
             self.assertEqual(Path(captured['cwd']),source)
             if purpose == "update":
-                self.assertEqual(args[-5:-1], ['python3','-B',str(source/'install/update-session.py'),'reviewed-revision'])
-                self.assertIn('reviewed-revision', args[-1])
+                self.assertEqual(args[-4:], ['python3','-B',str(source/'install/update-session.py'),'reviewed-revision'])
                 self.assertNotIn('tui', args)
                 return
             self.assertEqual(args[:2],['launch','tui'])
-            self.assertEqual(args[3],str(source/'install/agent-session.sh'))
-            self.assertIn('docs/INSTALL.md',args[4]);self.assertIn(str(source),args[4])
-            expected=next(line[2:] for line in (ROOT/'README.md').read_text().splitlines() if line.startswith('> I just installed')).replace('<path>',str(source)+'/')
-            self.assertEqual(args[4],expected)
+            self.assertEqual(args[3:], [str(source/'install/interactive-setup.sh'), 'install'])

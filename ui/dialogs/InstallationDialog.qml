@@ -6,9 +6,7 @@ OverlayPanel {
  id:root;objectName:"installation-dialog"
  property bool busy:false
  property string feedback:""
- property bool agentAvailable:true
  signal installRequested()
- signal configureRequested()
  signal manualRequested()
  height:Math.min(parent.height-24,body.implicitHeight+2*padding)
  x:(parent.width-width)/2;y:(parent.height-height)/2
@@ -19,8 +17,8 @@ OverlayPanel {
   OverlayHeader {title:"Installation";ink:root.ink;accent:root.accent;onClosed:root.close()}
   ActionCardRow {
    ActionCard {ink:root.ink;accent:root.accent;kind:"terminal"
-    id:launch;objectName:"installation-install";text:root.agentAvailable?"Install":"Configure agent";enabled:!root.busy
-    onClicked:{root.close();if(root.agentAvailable)root.installRequested();else root.configureRequested()}
+    id:launch;objectName:"installation-install";text:"Install";enabled:!root.busy
+    onClicked:{root.close();root.installRequested()}
    }
    ActionCard {ink:root.ink;accent:root.accent;kind:"terminal"
     objectName:"installation-manual";text:"Manual instructions";enabled:!root.busy

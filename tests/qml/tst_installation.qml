@@ -7,17 +7,12 @@ TestCase {
  name:"Installation";when:windowShown;visible:true;width:500;height:700
  Tor.TorDashboard {id:panel;anchors.fill:parent;showPowerControls:true;showLaunchControls:true;active:true;installationReady:false;interfaceSettings:Effects.interfaceConfig(Builtins.entries[0].interface)}
  SignalSpy {id:launch;target:panel;signalName:"installationRequested"}
- SignalSpy {id:configure;target:panel;signalName:"installationConfigureRequested"}
  SignalSpy {id:manual;target:panel;signalName:"installationManualRequested"}
- function test_agent_fallbacks(){
-  panel.installationReady=false;panel.installationAgentAvailable=false
-  panel.openInstallation();tryCompare(panel,"installationOpened",true);wait(150)
-  var button=findChild(panel,"installation-install");compare(button.text,"Configure agent")
-  mouseClick(button);tryCompare(configure,"count",1);compare(launch.count,0)
+ function test_manual_instructions(){
+  panel.installationReady=false
   panel.openInstallation();tryCompare(panel,"installationOpened",true);wait(150)
   mouseClick(findChild(panel,"installation-manual"));tryCompare(manual,"count",1)
   tryCompare(panel,"installationOpened",false);wait(250)
-  panel.installationAgentAvailable=true
  }
  function test_globe_and_two_step_installation(){
   compare(Tor.RenderCapabilities.nativeReady,false)

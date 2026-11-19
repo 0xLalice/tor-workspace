@@ -1,8 +1,6 @@
 import ".."
 import QtQuick
 import "../theme/EffectSettings.js" as Effects
-import "InstallationPrompt.js" as InstallPrompt
-import "UpdatePrompt.js" as UpdatePrompt
 import "PanelSizing.js" as PanelSizing
 import "TorAvailability.js" as Availability
 import Quickshell
@@ -83,16 +81,9 @@ Panel {
   }
   property string installationFeedback:""
   readonly property string pluginPath:decodeURIComponent(Qt.resolvedUrl("../../").toString().replace(/^file:\/\//,""))
-  property bool installationAgentAvailable:false
-  function checkInstallationAgent(){if(!agentProbe.running)agentProbe.running=true}
-  Process {
-    id:agentProbe
-    command:["bash",root.pluginPath+"install/agent-status.sh"]
-    stdout:StdioCollector {onStreamFinished:{try{root.installationAgentAvailable=JSON.parse(text).available===true}catch(e){root.installationAgentAvailable=false}}}
-    onExited:code=>{if(code!==0)root.installationAgentAvailable=false}
-  }
   AgentHandoff {
     id:agentHandoff
+    onBusyChanged:if(!busy&&purpose==="update"&&root.updateFeedback==="Updating…")root.updateFeedback=""
     pluginPath:root.pluginPath
     onDeparting:{if(agentHandoff.purpose==="installation"){dashboard.closePresentation();root.close()}}
     onFailed:purpose=>root.agentFailed(purpose)
@@ -103,7 +94,7 @@ Panel {
       updateFeedback="Update incomplete. Check for updates and try again."
       Qt.callLater(dashboard.openUpdate)
     } else {
-      installationFeedback="Could not open setup. Check your default agent or use Manual instructions."
+      installationFeedback="Could not open the setup terminal. See Manual instructions."
       Qt.callLater(dashboard.openInstallation)
     }
   }
@@ -111,7 +102,6 @@ Panel {
     installationFeedback=""
     agentHandoff.launch(command,"installation")
   }
-  function configureInstallationAgent(){installationAction(["omarchy","menu","summon","setup.default.agent"])}
   function installationManual(){installationAction(["omarchy","launch","editor",pluginPath+"docs/INSTALL.md"])}
   property var updateStatus:({})
   property string updateFeedback:""
@@ -133,11 +123,10 @@ Panel {
     if(agentHandoff.busy || updateStatus.canUpdate!==true)return
     updateFeedback="Updating…"
     agentHandoff.launch(["python3","-B",
-      pluginPath+"install/update-session.py",updateStatus.revision,
-      UpdatePrompt.text(pluginPath,updateStatus.revision)],"update")
+      pluginPath+"install/update-session.py",updateStatus.revision],"update")
   }
-  function installWithAgent() {
-    installationAction(["omarchy","launch","tui","bash",pluginPath+"install/agent-session.sh",InstallPrompt.text(pluginPath)])
+  function startInstallation() {
+    installationAction(["omarchy","launch","tui","bash",pluginPath+"install/interactive-setup.sh","install"])
   }
   property var installationHost: null
   readonly property var setupStatus: installationHost ? installationHost.installation : ({ready:false})
@@ -469,11 +458,8 @@ Panel {
         installationReady:root.setupStatus.ready
         installationBusy:agentHandoff.busy
         installationFeedback:root.installationFeedback
-        installationAgentAvailable:root.installationAgentAvailable
-        onInstallationCheckRequested:root.checkInstallationAgent()
-        onInstallationConfigureRequested:root.configureInstallationAgent()
         onInstallationManualRequested:root.installationManual()
-        onInstallationRequested:root.installWithAgent()
+        onInstallationRequested:root.startInstallation()
         updateStatus:root.updateStatus
         updateBusy:updateCheck.running||agentHandoff.busy
         updateFeedback:root.updateFeedback
@@ -541,7 +527,7 @@ Panel {
     function app(): void { if(root.inWorkspace){root.open();Qt.callLater(dashboard.openApp)} }
     function chat(): void { root.open();Qt.callLater(dashboard.openChat) }
     function installation(): void {root.open();Qt.callLater(dashboard.openInstallation)}
-    function installationFailed(): void {root.installationFeedback="Could not run your agent. Check its terminal setup or use Manual instructions.";root.open();Qt.callLater(dashboard.openInstallation)}
+    function installationFailed(): void {root.installationFeedback="Setup did not finish. Open Install to retry or see Manual instructions.";root.open();Qt.callLater(dashboard.openInstallation)}
     function updateFailed(): void {root.agentFailed("update")}
     function options(): void { root.open();Qt.callLater(dashboard.openOptions) }
     function updates(): string { return JSON.stringify(root.updateStatus) }

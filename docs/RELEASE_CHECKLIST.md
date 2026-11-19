@@ -22,8 +22,8 @@
 
 | Feature | Implementation path | Required observable result |
 | --- | --- | --- |
-| Fresh installation | `BarWidget` → `InstallationDialog` → agent session → `setup-session.py` | Unbuilt panel opens; actual Install button opens review in the plugin directory; explicit OK precedes setup; one sudo session; packages/build/backend/signed browser/workspace complete; panel opens with Tor off. |
-| Missing agent/manual setup | `RuntimeWidget` → `agent-status.sh` / bundled guide | Configure agent and bundled guide work; launch failure reopens useful feedback; a working plugin does not depend on an agent. |
+| Fresh installation | `BarWidget` → `InstallationDialog` → setup terminal → `setup-session.py` | Unbuilt panel opens; Install opens the setup terminal in the plugin directory; explicit confirmation precedes setup; one sudo session; packages/build/backend/signed browser/workspace complete; panel opens with Tor off. |
+| Missing agent/manual setup | setup terminal / bundled guide | Signed-out users can install directly; failed optional review returns to the terminal; cancelling applies nothing. |
 | Tor on/off | power button → `RuntimeWidget.controlTor` → `lifecycle.py` → system broker | Start is explicit; initialized Tor with confirmed policy enables actions even without spare circuits; idle status reads never build circuits; operations prepare their required connections; Stop clears availability and takes services offline; reopening the panel never starts Tor. |
 | Browser and terminal | dashboard → `launch.py` → root-owned `client.py` / `session.py` | Actual windows open in Tor workspace; namespace differs from ordinary desktop; HTTPS exit is Tor; terminal observes exact exit and country; failed launch never opens an ordinary application as fallback. |
 | Country lock/new circuit | globe/footer → runtime → `exit_controller.py` | Policy readback and matching exit precede launch; unavailable country stays blocked; renewal confirms a replacement; existing onion services survive exit renewal. |
@@ -37,7 +37,7 @@
 | Speed comparison | speed overlay → `speed_compare.py` | Explicit direct and Tor measurements remain separate; cancelled process stops; failures aren't reported as speed; UI discloses the direct test. |
 | Themes/renderers | palette watcher → palette gate → shared appearance → native renderers | All 22 palettes, both built-ins, custom publication; smooth transitions after Omarchy; no resize, flash, circuit redraw/request or camera reset; hidden/reduced-motion stops unnecessary work. |
 | Options/shortcuts | Options → runtime → `shortcuts.py` | Both shortcut halves checked for conflicts; changes survive reload; clearing removes only plugin-owned bindings; resume option appears only in Options. |
-| Updates/repair | update dialog → direct update or privileged agent review → readiness | Offline use works; dirty/divergent Git blocks update; user settings/history survive; required native/backend repair is explicit; repeated setup creates no duplicate widget/include. |
+| Updates/repair | update dialog → direct update or confirmed setup → readiness | Offline use works; dirty/divergent Git blocks update; user settings/history survive; required native/backend repair is explicit; repeated setup creates no duplicate widget/include. |
 | Removal/reinstall | `system/uninstall.py` → Omarchy removal | Refuse unsafe namespace cleanup with remaining processes; remove owned units/network resources only; retain files/profiles/preferences; reinstall works. |
 
 ## Update acceptance and final public access
@@ -52,9 +52,7 @@ and Git history. Check both a versioned release with feature notes and the commi
   summaries above installed history.
 - [ ] Local edits/divergence block Update, including edits made after discovery
   was cached. Source, settings and history remain intact on failure/cancellation.
-- [ ] The actual Update action opens the configured agent, uses Omarchy's normal
-  updater, performs any required native/backend repair, reloads the shell and
-  verifies the panel. Merely launching the agent is not a pass.
+- [ ] Update applies the selected release and verifies readiness. Privileged updates complete through the setup terminal with or without agent review.
 - [ ] After completion, readiness passes, no update remains pending, settings
   survive, and repeated checking causes no duplicate configuration or dialogs.
 - [ ] GitHub private vulnerability reporting is enabled and its reporting link

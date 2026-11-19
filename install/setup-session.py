@@ -89,7 +89,7 @@ def install():
     run([sys.executable, '-B', str(ROOT/'install/install-user.py'), '--no-reload'])
     run(['hyprctl', 'reload'])
     errors = subprocess.check_output(['hyprctl', 'configerrors'], text=True).strip()
-    if errors: raise RuntimeError('Hyprland configuration errors: '+errors)
+    if errors not in ('', 'ok'): raise RuntimeError('Hyprland configuration errors: '+errors)
     ready = setup_status.status()
     if not ready['ready']: raise RuntimeError('; '.join(ready['issues']))
     print('Setup readiness passed. Restart the shell and verify the panel visually. '

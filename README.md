@@ -9,8 +9,7 @@ This project is independent of Omarchy and the Tor Project.
 
 Requires **Omarchy 4 with the Lua-based Hyprland configuration, x86_64**. Python
 and native modules are installed during setup; the normal dashboard and globe load
-before they are available. Setup can use a configured Omarchy agent or the
-bundled manual instructions. A working installation does not require an agent.
+before they are available. The installer works with or without an AI account.
 
 ```sh
 omarchy plugin add https://github.com/0xLalice/tor-workspace.git --enable
@@ -18,22 +17,14 @@ omarchy plugin add https://github.com/0xLalice/tor-workspace.git --enable
 
 Omarchy clones, validates and enables the plugin; it does not install dependencies
 or run setup hooks. Open the onion widget, choose **Installation**, then **Install**.
-Your configured Omarchy agent opens in the plugin directory and reviews setup first.
-It briefly reports the findings and waits for your **OK** before installing.
-If no executable agent is configured, **Configure agent** opens Omarchy's agent
-settings. **Manual instructions** opens the bundled guide.
+In the setup terminal, type **i** to install or **q** to cancel. If a local agent is
+configured, **r** opens an optional source review. Exiting that review returns
+to the same terminal, including when the agent needs sign-in.
 
-After your OK, one setup terminal handles packages and the backend with one sudo
-authentication session. Builds and browser downloads remain unprivileged. The
-password is normally your desktop user's password, not a separate root password.
-Agent login remains the agent's own flow. For Codex, the button trusts only this
-plugin directory for that launch, keeping its normal sandbox and automatic
-approval review; it does not write global trust settings.
-
-> I just installed Tor Workspace at `<path>`. First review its code and `docs/INSTALL.md` without changing the system or starting installation. Missing dependencies are expected. Briefly report factual findings; only if no blocking issues are found, begin with "✅ No blocking issues found in the installation review." Explain that installation needs one administrator password prompt to install missing system packages and the root-owned backend, while builds and downloads run as my desktop user. Do not claim a security certification or guaranteed safety. Ask me to reply OK and stop. Only after my explicit OK, complete setup with the single-terminal installation flow in `docs/INSTALL.md`, then verify readiness and that the panel opens. Keep Tor off and do not run the full development test suites.
-[docs/INSTALL.md](docs/INSTALL.md) is the complete review, dependency, build, and repair
-procedure. Installing the plugin does not start Tor. The button remains until
-readiness checks pass; launching an agent is not considered completion.
+The installer requests your desktop password through sudo when system packages
+or the root-owned Tor backend need work. Builds and browser downloads run as
+your desktop user. Setup verifies readiness, reloads the shell, and preserves
+the current Tor state. [Installation guide](docs/INSTALL.md)
 
 ## Use
 
@@ -120,7 +111,7 @@ release notes are available offline, and new releases appear above them when
 GitHub has an update. **Options → Update available** opens the same overlay.
 **Update** checks the selected release against your machine. Ordinary releases
 apply directly. When system packages or the root-owned backend need work, the
-same button opens your agent to review and complete the privileged setup. Background checks disable
+same button opens the setup terminal for confirmation and optional agent review. Background checks disable
 credential helpers and password prompts. Private HTTPS repositories that require
 your credential helper must be updated manually with the command below, which
 can use your normal Git authentication. Offline checks never prevent using the plugin.
@@ -131,7 +122,9 @@ You can also use the standard command:
 omarchy plugin update tor.workspace
 ```
 
-If the Installation button returns, follow its review and setup procedure again.
+On versions through 0.2.3, an agent-only button can block a signed-out user.
+Run the standard update command above once, then run `omarchy restart shell`.
+If the panel shows **Installation**, choose **Install** to finish in the new setup terminal.
 C++ source changes, incompatible Qt versions, and stale privileged backend files
 require repair. Local builds preserve Git metadata and leave tracked files clean,
 so Omarchy can fast-forward future updates. Restart the shell after rebuilding

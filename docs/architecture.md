@@ -56,7 +56,7 @@ terminal prompts and desktop askpass; SSH uses batch mode. Private HTTPS remotes
 requiring a credential helper can be updated manually using normal Git credentials.
 Installed history is emitted before the network check; available entries are shown above it. The header reads
 the installed version from the manifest rather than maintaining a separate label. Local changes or divergent
-history block the update action. The Update button starts an independent user service. It validates the selected revision in a temporary checkout and checks readiness against the installed system and native builds. Privileged setup opens the agent for review. User-only updates fast-forward to the selected commit, finish any user setup and reload the shell. A Git-local marker allows interrupted setup to resume. Public installations use anonymous HTTPS.
+history block the update action. The Update button starts an independent user service. It validates the selected revision in a temporary checkout and checks readiness against the installed system and native builds. Privileged setup opens a confirmation terminal with optional agent review. Confirmation rechecks the selected revision and invokes the same setup helper used for first installs. User-only updates fast-forward to the selected commit, finish any user setup and reload the shell. A Git-local marker allows interrupted setup to resume. Public installations use anonymous HTTPS.
 
 ## Installation and execution
 
@@ -66,10 +66,8 @@ Every native import is behind a gated Loader, so an unbuilt checkout can display
 the bundled globe. Tor-dependent controls remain disabled until setup is ready.
 
 The Installation button opens `ui/dialogs/InstallationDialog.qml`. Its Install
-button opens the configured agent for source review, then waits for explicit OK
-before the single-terminal [installation procedure](INSTALL.md). Configure agent
-and Manual instructions remain available when setup cannot launch. No completion marker is
-trusted: readiness checks inspect packages, backend contents, enrollment, browser,
+button opens the account-independent [setup terminal](INSTALL.md). Agent review
+and the bundled manual are optional. After installation, readiness checks inspect packages, backend contents, enrollment, browser,
 workspace registration, socket and native source/Qt/architecture compatibility.
 
 `tools/build-native.py` compiles as the desktop user into `build/qml/`.
