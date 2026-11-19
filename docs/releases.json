@@ -1,5 +1,13 @@
 [
   {
+    "version": "0.2.1",
+    "changes": [
+      "Tor shows connection progress while its exit directory loads.",
+      "The exit-country warning appears only when a selected country has no matching exits."
+    ],
+    "icons": ["refresh", "browser"]
+  },
+  {
     "version": "0.2",
     "changes": [
       "Read each new feature in full in the Changelog.",

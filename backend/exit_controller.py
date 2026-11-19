@@ -272,7 +272,8 @@ class Gateway:
             progress = re.search(r'\bPROGRESS=(\d+)', self.control.command('GETINFO status/bootstrap-phase'))
             self.bootstrapped = bool(progress and int(progress[1]) == 100)
             self.publish(progress=int(progress[1]) if progress else 0)
-        self.publish(serviceReady=self.bootstrapped and any(self.eligible(fp) for fp in self.relays))
+        has_eligible_exit = any(self.eligible(fp) for fp in self.relays)
+        self.publish(serviceReady=self.bootstrapped and has_eligible_exit)
         raw = self.control.command('GETINFO circuit-status')
         raw = self.close_incompatible(raw)
         self.circuits = built_circuits(raw)
@@ -324,10 +325,12 @@ class Gateway:
                 self.publish(state='ready', policyReady=True, verifiedCountry=verified,
                              transition='stable', route=route, circuitId=cid, mapVersion=1, message='')
                 return
-        available = any(self.eligible(fp) for fp in self.relays)
-        self.publish(route=[], circuitId='', policyReady=False, verifiedCountry='', state='starting' if available else 'unavailable',
-                     transition='building' if available else 'unavailable',
-                     message='Waiting for Tor circuits.' if available else 'No exits available under the country restriction. Choose another country or wait for directory updates.')
+        country_unavailable = self.bootstrapped and self.prefs['country'] and self.relays and not has_eligible_exit
+        self.publish(route=[], circuitId='', policyReady=False, verifiedCountry='',
+                     state='unavailable' if country_unavailable else 'starting',
+                     transition='unavailable' if country_unavailable else 'building',
+                     message=('No exits available under the country restriction. Choose another country or wait for directory updates.'
+                              if country_unavailable else 'Waiting for Tor circuits.'))
 
     def request(self, action, value):
         if action in ('status', 'cached'): return self.state

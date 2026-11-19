@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "tor.workspace",
   "name": "Tor Workspace",
-  "version": "0.2",
+  "version": "0.2.1",
   "author": "Tor Workspace contributors",
   "description": "Tor workspace, live circuits, file sharing, chat and onion hosting",
   "kinds": [

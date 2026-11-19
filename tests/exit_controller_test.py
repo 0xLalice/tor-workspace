@@ -248,8 +248,41 @@ class ControllerTest(unittest.TestCase):
         with patch.object(self.tor, 'command', side_effect=ConnectionResetError):
             with self.assertRaises(ConnectionResetError):g.tick()
 
+    def test_unrestricted_cold_start_waits_for_directory_and_circuit(self):
+        records = self.tor.records
+        self.tor.records = []
+        self.tor.progress = 25
+        g = self.restore()
+        for progress in (25, 100):
+            self.tor.progress = progress
+            g.tick()
+            self.assertEqual(g.state['state'], 'starting')
+            self.assertEqual(g.state['progress'], progress)
+            self.assertFalse(g.state['serviceReady'])
+            self.assertNotIn('country', g.state['message'])
+
+        self.tor.records = records
+        g.directory()
+        g.tick()
+        self.assertEqual(g.state['state'], 'starting')
+        self.assertTrue(g.state['serviceReady'])
+        self.tor.built = self.tor.circuit('7', C)
+        g.tick()
+        self.assertTrue(ec.ready(g.state, ''))
+
     def test_unavailable_country_recovers_from_directory_without_broadening(self):
-        g = self.restore('AQ'); g.tick()
+        records = self.tor.records
+        self.tor.records = []
+        self.tor.progress = 25
+        g = self.restore('AQ')
+        g.tick()
+        self.assertEqual(g.state['state'], 'starting')
+        self.tor.records = records
+        g.directory()
+        g.tick()
+        self.assertEqual(g.state['state'], 'starting')
+        self.tor.progress = 100
+        g.tick()
         self.assertEqual(g.state['state'], 'unavailable')
         self.tor.records.append((C, 'AQ')); g.directory()
         self.tor.built = self.tor.circuit('7', C); g.tick()
