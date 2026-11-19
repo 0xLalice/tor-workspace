@@ -40,8 +40,14 @@ TestCase {
   compare(note.text,panel.updateStatus.releases[0].changes.join(" "))
   compare(note.lineCount,1)
   verify(note.truncated)
-  compare(latest.height,second.height)
-  verify(latest.height<=note.implicitHeight+6)
+  // The status glyphs can use different fallback fonts. Each row must fit
+  // its own single line, including the taller of the glyph and the summary.
+  for(var row of [latest,second]){
+   var summary=findChild(row,"release-summary"),version=findChild(row,"release-version")
+   compare(summary.lineCount,1);compare(version.lineCount,1)
+   var lineHeight=Math.max(summary.implicitHeight,version.implicitHeight)
+   verify(row.height>=lineHeight && row.height<=lineHeight+6)
+  }
   compare(second.y,latest.y+latest.height+2)
   verify(latest.Accessible.name.indexOf("Read the second change in full.")>=0)
   var next=findChild(panel,"update-continue")

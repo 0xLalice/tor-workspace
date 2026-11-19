@@ -176,7 +176,7 @@
   "tests/qml/tst_theme_names.qml": "149344186b2d4f0d9410a5646aad3629937fa411b9584232a9fa83718487adf0",
   "tests/qml/tst_three_designs.qml": "39fd41b3172616c128ef928f7415dc1d2c8d9f292d78a39638d95d798dd6e78a",
   "tests/qml/tst_typography.qml": "f1aa5259dd05d6b6830cd45c61b001d5a971940b8b45f40e5bbd2cb6054d0c3f",
-  "tests/qml/tst_updates.qml": "5e1807235e757fd5c14d86919c65df2e3f337da374ac275701c49e32b4afdcba",
+  "tests/qml/tst_updates.qml": "e3c9b906f7a630e10e7ebe150faeb1030415e69a2ec07d08a732475cebf27b6c",
   "tests/relay_info_test.py": "0b0a2f7e21b4bd3adb03f00f47c8b34fe788bfedfc00085ee93ec3ab495ebbf2",
   "tests/resolver_mount_test.py": "8e40996f8c8052954f8b71db9c639e8b40b8fa8e85442788426f7ca2dfb63356",
   "tests/runtime_cache_test.py": "3f0dcd2f5adec560520a7cbf61a80949372708ca5a7bc6214990d4701d16da7f",
